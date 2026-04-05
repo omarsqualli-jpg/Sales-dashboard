@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MA Sales Performance Dashboard</title>
+<style>
+  :root {
+    --gold: #FFD700;
+    --silver: #C0C0C0;
+    --bronze: #CD7F32;
+    --bg: #060a14;
+    --card: #0d1526;
+    --card2: #111c34;
+    --blue: #1E90FF;
+    --fire: #FF6B35;
+    --green: #00E676;
+    --purple: #7C4DFF;
+    --text: #E8EAF0;
+    --sub: #7A8BAA;
+    --border: rgba(255,255,255,0.07);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0a1628 0%, #0d1f40 50%, #0a1628 100%);
+    border-bottom: 1px solid rgba(30, 144, 255, 0.2);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: none;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #fff 0%, #7EB8FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-left p { font-size: 12px; color: var(--sub); margin-top: 3px; letter-spacing: 1px; text-transform: uppercase; }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .live-badge {
+    background: rgba(0, 230, 118, 0.15);
+    border: 1px solid rgba(0, 230, 118, 0.4);
+    color: var(--green);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+  .date-badge {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--sub);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 36px 40px; }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title .icon { font-size: 28px; }
+  .section-title h2 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+  .section-title .month-tag {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,107,53,0.15));
+    border: 1px solid rgba(255,215,0,0.3);
+    color: var(--gold);
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .section-title .live-tag {
+    background: linear-gradient(135deg, rgba(0,230,118,0.15), rgba(30,144,255,0.15));
+    border: 1px solid rgba(0,230,118,0.3);
+    color: var(--green);
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  /* ── TEAM TABS ── */
+  .team-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+  .team-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .team-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .team-label.field { color: var(--blue); }
+  .team-label.tele { color: var(--purple); }
+  .team-label.field::before {
+    content: '';
+    display: block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--blue);
+  }
+  .team-label.tele::before {
+    content: '';
+    display: block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--purple);
+  }
+
+  /* ── PODIUM CARDS ── */
+  .podium {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 8px 0 16px;
+  }
+  .podium-slot {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+  }
+  .podium-slot.rank-1 { order: 2; }
+  .podium-slot.rank-2 { order: 1; }
+  .podium-slot.rank-3 { order: 3; }
+
+  .podium-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    position: relative;
+    letter-spacing: -1px;
+  }
+  .rank-1 .podium-avatar {
+    width: 62px; height: 62px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,165,0,0.1));
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 20px rgba(255,215,0,0.3);
+    animation: glow-gold 2.5s ease-in-out infinite;
+  }
+  .rank-2 .podium-avatar {
+    background: linear-gradient(135deg, rgba(192,192,192,0.2), rgba(192,192,192,0.05));
+    border: 2px solid var(--silver);
+  }
+  .rank-3 .podium-avatar {
+    background: linear-gradient(135deg, rgba(205,127,50,0.2), rgba(205,127,50,0.05));
+    border: 2px solid var(--bronze);
+  }
+
+  @keyframes glow-gold {
+    0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+    50% { box-shadow: 0 0 35px rgba(255,215,0,0.6), 0 0 60px rgba(255,165,0,0.2); }
+  }
+
+  .crown {
+    position: absolute;
+    top: -18px;
+    font-size: 18px;
+    animation: bounce-crown 2s ease-in-out infinite;
+  }
+  @keyframes bounce-crown {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-4px) rotate(5deg); }
+  }
+
+  .podium-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .rank-1 .podium-name { font-size: 14px; color: #fff; }
+
+  .podium-score {
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .rank-1 .podium-score { font-size: 32px; color: var(--gold); }
+  .rank-2 .podium-score { color: var(--silver); }
+  .rank-3 .podium-score { color: var(--bronze); }
+
+  .podium-label { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .podium-base {
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.5);
+  }
+  .rank-1 .podium-base {
+    height: 56px;
+    background: linear-gradient(180deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-bottom: none;
+  }
+  .rank-2 .podium-base {
+    height: 40px;
+    background: linear-gradient(180deg, rgba(192,192,192,0.1) 0%, rgba(192,192,192,0.03) 100%);
+    border: 1px solid rgba(192,192,192,0.15);
+    border-bottom: none;
+  }
+  .rank-3 .podium-base {
+    height: 28px;
+    background: linear-gradient(180deg, rgba(205,127,50,0.1) 0%, rgba(205,127,50,0.03) 100%);
+    border: 1px solid rgba(205,127,50,0.15);
+    border-bottom: none;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .metric-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 20px;
+  }
+  .metric-divider span {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--sub);
+    white-space: nowrap;
+  }
+  .metric-divider::before, .metric-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── APRIL TRACKER ── */
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .tracker-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .rep-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .rep-row:last-child { border-bottom: none; }
+
+  .rep-rank-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sub);
+    width: 18px;
+    text-align: center;
+  }
+
+  .rep-avatar-sm {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .rep-avatar-sm.top { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.08); }
+
+  .rep-info { flex: 1; min-width: 0; }
+  .rep-info .name { font-size: 13px; font-weight: 600; }
+  .rep-info .meta { font-size: 11px; color: var(--sub); margin-top: 1px; }
+
+  .rep-progress { flex: 1.5; }
+  .progress-bar-wrap {
+    background: rgba(255,255,255,0.06);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 3px;
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-bar.gold { background: linear-gradient(90deg, #F59E0B, #FFD700); }
+  .progress-bar.blue { background: linear-gradient(90deg, #2563EB, #60A5FA); }
+  .progress-bar.green { background: linear-gradient(90deg, #059669, #34D399); }
+  .progress-bar.purple { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
+  .progress-bar.orange { background: linear-gradient(90deg, #EA580C, #FB923C); }
+  .progress-bar.gray { background: linear-gradient(90deg, #374151, #6B7280); }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--sub);
+  }
+  .progress-labels .pct { font-weight: 600; }
+  .progress-labels .pct.on-fire { color: var(--gold); }
+
+  .rep-deals {
+    font-size: 18px;
+    font-weight: 900;
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .rep-deals.zero { color: rgba(255,255,255,0.2); }
+  .rep-deals.positive { color: var(--green); }
+
+  /* ── PIPELINE WARRIORS ── */
+  .pipeline-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .pipeline-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .warrior-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .warrior-card:hover { border-color: rgba(30,144,255,0.3); transform: translateY(-1px); }
+  .warrior-card.top-warrior {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,215,0,0.05));
+    border-color: rgba(255,107,53,0.25);
+  }
+  .warrior-card.top-warrior:hover { border-color: rgba(255,107,53,0.5); }
+
+  .warrior-rank {
+    font-size: 20px;
+    width: 28px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .warrior-info { flex: 1; }
+  .warrior-info .name { font-size: 13px; font-weight: 700; }
+  .warrior-info .role-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 6px;
+    margin-left: 6px;
+  }
+  .role-tag.field { background: rgba(30,144,255,0.12); color: #60A5FA; }
+  .role-tag.tele { background: rgba(124,77,255,0.12); color: #A78BFA; }
+
+  .warrior-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+  }
+  .warrior-stat { text-align: center; }
+  .warrior-stat .val {
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .warrior-stat .lbl { font-size: 9px; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .warrior-stat .val.highlight { color: var(--fire); }
+  .warrior-stat .val.blue { color: var(--blue); }
+  .warrior-stat .val.green { color: var(--green); }
+
+  .warrior-fire { font-size: 16px; }
+
+  /* ── STATS STRIP ── */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat-icon { font-size: 28px; }
+  .stat-val { font-size: 28px; font-weight: 900; line-height: 1; }
+  .stat-val.blue { color: var(--blue); }
+  .stat-val.gold { color: var(--gold); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.fire { color: var(--fire); }
+  .stat-lbl { font-size: 11px; color: var(--sub); margin-top: 3px; }
+
+  /* ── HEALTHY PARTNER BARS ── */
+  .healthy-list { margin-top: 4px; }
+  .healthy-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .healthy-row:last-child { border-bottom: none; }
+  .healthy-row .hname { font-size: 12px; font-weight: 600; width: 90px; flex-shrink: 0; }
+  .healthy-row .hbar-wrap { flex: 1; background: rgba(255,255,255,0.05); border-radius: 4px; height: 5px; }
+  .healthy-row .hbar { height: 5px; border-radius: 4px; background: linear-gradient(90deg, #059669, #34D399); transition: width 1.2s ease; }
+  .healthy-row .hval { font-size: 12px; font-weight: 700; color: var(--green); width: 28px; text-align: right; }
+  .healthy-row.rank-1-row .hbar { background: linear-gradient(90deg, #D97706, #FCD34D); }
+  .healthy-row.rank-1-row .hval { color: var(--gold); }
+  .healthy-row.rank-2-row .hbar { background: linear-gradient(90deg, #6B7280, #D1D5DB); }
+  .healthy-row.rank-2-row .hval { color: var(--silver); }
+  .healthy-row.rank-3-row .hbar { background: linear-gradient(90deg, #92400E, #D97706); }
+  .healthy-row.rank-3-row .hval { color: var(--bronze); }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--sub);
+    font-size: 11px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── ANIMATIONS ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up:nth-child(1) { animation-delay: 0.05s; }
+  .fade-up:nth-child(2) { animation-delay: 0.15s; }
+  .fade-up:nth-child(3) { animation-delay: 0.25s; }
+  .fade-up:nth-child(4) { animation-delay: 0.35s; }
+
+  .section-wrapper { margin-bottom: 48px; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,215,0,0.05));
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .highlight-box strong { color: var(--gold); }
+
+  /* ── APRIL HERO ── */
+  .april-hero {
+    background: linear-gradient(135deg, #070e20 0%, #0c1a35 50%, #070e20 100%);
+    border: 1px solid rgba(0,230,118,0.15);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .april-hero::before {
+    content: 'APRIL';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 120px;
+    font-weight: 900;
+    color: rgba(0,230,118,0.03);
+    letter-spacing: -4px;
+    pointer-events: none;
+    user-select: none;
+  }
+  .april-hero-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .april-hero-title { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
+  .april-hero-title span { color: var(--green); }
+  .april-pace-tag {
+    background: rgba(0,230,118,0.1);
+    border: 1px solid rgba(0,230,118,0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    text-align: center;
+  }
+  .april-pace-tag .big { font-size: 28px; font-weight: 900; color: var(--green); line-height: 1; }
+  .april-pace-tag .lbl { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+
+  .april-rep-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .april-team-col {}
+  .april-col-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .april-col-label.field { color: var(--blue); }
+  .april-col-label.tele { color: var(--purple); }
+
+  .april-rep {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .april-rep:last-child { border-bottom: none; }
+  .april-rep .aname { font-size: 12px; font-weight: 600; width: 80px; flex-shrink: 0; }
+  .april-rep .abar-outer { flex: 1; position: relative; }
+  .april-rep .abar-bg { background: rgba(255,255,255,0.05); border-radius: 5px; height: 7px; }
+  .april-rep .abar-fill { height: 7px; border-radius: 5px; transition: width 1.2s ease; }
+  .april-rep .abar-pace { position: absolute; top: -2px; bottom: -2px; width: 2px; background: rgba(255,255,255,0.3); border-radius: 1px; }
+  .april-rep .abar-labels { display: flex; justify-content: space-between; margin-top: 3px; font-size: 9px; }
+  .april-rep .adeals { font-size: 15px; font-weight: 900; width: 22px; text-align: right; flex-shrink: 0; }
+  .april-rep .adeals.hit { color: var(--green); }
+  .april-rep .adeals.partial { color: #FB923C; }
+  .april-rep .adeals.zero { color: rgba(255,255,255,0.15); }
+  .april-rep .apipe { font-size: 10px; color: #60A5FA; flex-shrink: 0; width: 36px; text-align: right; }
+  .status-pill {
+    font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 8px;
+    letter-spacing: 0.5px; flex-shrink: 0;
+  }
+  .status-pill.ahead { background: rgba(0,230,118,0.12); color: var(--green); }
+  .status-pill.on { background: rgba(251,146,60,0.12); color: #FB923C; }
+  .status-pill.behind { background: rgba(255,255,255,0.05); color: var(--sub); }
+
+  /* ── SALESFORCE ── */
+  .sf-section {
+    background: linear-gradient(135deg, #0a0f1e, #0e1528);
+    border: 1px solid rgba(0,161,255,0.2);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 48px;
+  }
+  .sf-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .sf-logo {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: linear-gradient(135deg, #009EDB, #00A1E0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .sf-header h3 { font-size: 18px; font-weight: 800; }
+  .sf-header p { font-size: 12px; color: var(--sub); margin-top: 2px; }
+  .sf-status {
+    margin-left: auto; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  }
+  .sf-status.disconnected { background: rgba(255,255,255,0.05); color: var(--sub); border: 1px solid var(--border); }
+  .sf-status.connected { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+
+  .sf-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .sf-setup { }
+  .sf-steps { list-style: none; counter-reset: step-counter; }
+  .sf-steps li {
+    counter-increment: step-counter;
+    display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;
+  }
+  .sf-steps li::before {
+    content: counter(step-counter);
+    background: rgba(0,161,255,0.15); color: #00A1E0;
+    border: 1px solid rgba(0,161,255,0.3);
+    border-radius: 50%; width: 22px; height: 22px; min-width: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; margin-top: 1px;
+  }
+  .sf-steps li .step-text { font-size: 12px; line-height: 1.6; color: var(--text); }
+  .sf-steps li .step-text strong { color: #60CFFF; }
+  .sf-steps li .step-text code {
+    background: rgba(0,161,255,0.08); border: 1px solid rgba(0,161,255,0.15);
+    padding: 1px 6px; border-radius: 4px; font-size: 11px; font-family: monospace; color: #7DD3FC;
+  }
+  .sf-connect-form { }
+  .sf-field { margin-bottom: 12px; }
+  .sf-field label { display: block; font-size: 11px; font-weight: 600; color: var(--sub); margin-bottom: 5px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .sf-field input {
+    width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 13px;
+    outline: none; font-family: inherit; transition: border-color 0.2s;
+  }
+  .sf-field input:focus { border-color: rgba(0,161,255,0.4); }
+  .sf-field input::placeholder { color: rgba(255,255,255,0.2); }
+  .sf-btn {
+    width: 100%; padding: 11px; border-radius: 10px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: inherit; margin-top: 4px;
+    background: linear-gradient(135deg, #0066B3, #00A1E0); color: #fff;
+    transition: all 0.2s; letter-spacing: 0.5px;
+  }
+  .sf-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .sf-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .sf-note { font-size: 11px; color: var(--sub); margin-top: 10px; line-height: 1.6; }
+  .sf-note a { color: #60CFFF; text-decoration: none; }
+  .sf-data-panel {
+    display: none; margin-top: 20px; padding: 16px;
+    background: rgba(0,161,255,0.05); border: 1px solid rgba(0,161,255,0.15); border-radius: 12px;
+  }
+  .sf-data-panel.visible { display: block; }
+  .sf-data-title { font-size: 12px; font-weight: 700; color: #60CFFF; margin-bottom: 12px; }
+  .sf-data-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
+  .sf-data-row:last-child { border-bottom: none; }
+  .sf-error { color: #FC8181; font-size: 12px; margin-top: 8px; display: none; }
+
+  @media (max-width: 900px) {
+    .team-section, .tracker-grid, .pipeline-grid, .stats-strip, .april-rep-grid, .sf-body { grid-template-columns: 1fr; }
+    .container { padding: 20px; }
+    .header { padding: 18px 20px; }
+    .april-hero::before { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>MA Sales Performance Dashboard</h1>
+    <p>North Africa &middot; Morocco &middot; Field Sales &amp; Telesales</p>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="date-badge" id="current-date"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TEAM OVERVIEW STATS -->
+  <div class="stats-strip fade-up">
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div>
+        <div class="stat-val fire">6</div>
+        <div class="stat-lbl">April Live Deals — MTD</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div>
+        <div class="stat-val blue">15</div>
+        <div class="stat-lbl">April In Pipeline (submitted)</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div>
+        <div class="stat-val gold">158</div>
+        <div class="stat-lbl">March Activations — Team</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💚</div>
+      <div>
+        <div class="stat-val green">95</div>
+        <div class="stat-lbl">March Healthy Partners</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- SECTION 1: APRIL — RACE TO TARGET     -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section-wrapper">
+    <div class="section-title">
+      <span class="icon">📈</span>
+      <h2>April — Race to Target</h2>
+      <span class="live-tag">LIVE · MTD APRIL 2026</span>
+    </div>
+
+    <!-- APRIL HERO SCOREBOARD -->
+    <div class="april-hero fade-up">
+      <div class="april-hero-header">
+        <div>
+          <div class="april-hero-title">April <span>2026</span> — Partner Activations</div>
+          <div style="font-size:13px; color:var(--sub); margin-top:6px;">3 working days in · 19 remaining · Pace bar shows expected vs actual</div>
+        </div>
+        <div class="april-pace-tag">
+          <div class="big">14%</div>
+          <div class="lbl">Month Elapsed</div>
+        </div>
+      </div>
+
+      <div class="april-rep-grid">
+
+        <!-- FIELD SALES -->
+        <div class="april-team-col">
+          <div class="april-col-label field">⬤ Field Sales — Target: 22 deals/rep</div>
+
+          <!-- Mahdi: 2 live, 5 submitted, expected 3 → AHEAD -->
+          <div class="april-rep">
+            <div class="aname">🔥 Mahdi</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#D97706,#FFD700);" data-w="9.1"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;" title="Pace marker"></div>
+              <div class="abar-labels">
+                <span style="color:var(--gold); font-weight:700;">2 live</span>
+                <span style="color:#60A5FA;">+5 submitted</span>
+              </div>
+            </div>
+            <div class="adeals hit">2</div>
+            <div class="apipe">+5⏳</div>
+            <div class="status-pill ahead">AHEAD</div>
+          </div>
+
+          <!-- Telmani: 1 live, 2 submitted, expected 3 → BEHIND but pipeline -->
+          <div class="april-rep">
+            <div class="aname">🔥 Telmani</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#D97706,#FFD700);" data-w="4.5"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:var(--gold); font-weight:700;">1 live</span>
+                <span style="color:#60A5FA;">+2 submitted</span>
+              </div>
+            </div>
+            <div class="adeals hit">1</div>
+            <div class="apipe">+2⏳</div>
+            <div class="status-pill on">ON PACE</div>
+          </div>
+
+          <!-- Omar: 1 live (half target), 5 submitted → strong pipeline -->
+          <div class="april-rep">
+            <div class="aname">Omar</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#2563EB,#60A5FA);" data-w="9.1"></div>
+              </div>
+              <div class="abar-pace" style="left:6.8%;"></div>
+              <div class="abar-labels">
+                <span style="color:#60A5FA; font-weight:700;">1 live</span>
+                <span style="color:#60A5FA;">+5 submitted</span>
+              </div>
+            </div>
+            <div class="adeals hit">1</div>
+            <div class="apipe">+5⏳</div>
+            <div class="status-pill ahead">AHEAD</div>
+          </div>
+
+          <!-- Ayoub: 1 live, 2 submitted -->
+          <div class="april-rep">
+            <div class="aname">Ayoub</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#EA580C,#FB923C);" data-w="4.5"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:#FB923C; font-weight:700;">1 live</span>
+                <span style="color:#60A5FA;">+2 in process</span>
+              </div>
+            </div>
+            <div class="adeals partial">1</div>
+            <div class="apipe">+2⏳</div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+
+          <!-- Badr: 1 live, 2 submitted -->
+          <div class="april-rep">
+            <div class="aname">Badr</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#EA580C,#FB923C);" data-w="4.5"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:#FB923C; font-weight:700;">1 live</span>
+                <span style="color:#60A5FA;">+2 in process</span>
+              </div>
+            </div>
+            <div class="adeals partial">1</div>
+            <div class="apipe">+2⏳</div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+
+          <!-- Ahmed: 0 live, 1 submitted, 6 verbal -->
+          <div class="april-rep">
+            <div class="aname">Ahmed</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:rgba(255,255,255,0.1);" data-w="0"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:var(--sub);">0 live</span>
+                <span style="color:#60A5FA;">6 verbal + 1 submitted</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+7⏳</div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+
+          <!-- Soumaya: 0 live, 1 submitted, 8 impacted -->
+          <div class="april-rep">
+            <div class="aname">Soumaya</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:rgba(255,255,255,0.1);" data-w="0"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:var(--sub);">0 live</span>
+                <span style="color:#60A5FA;">4 verbal + 1 submitted</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+5⏳</div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+
+          <!-- Maryam: 0 live, 3 submitted -->
+          <div class="april-rep">
+            <div class="aname">Maryam</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:rgba(255,255,255,0.1);" data-w="0"></div>
+              </div>
+              <div class="abar-pace" style="left:6.8%;"></div>
+              <div class="abar-labels">
+                <span style="color:var(--sub);">0 live</span>
+                <span style="color:#60A5FA;">3 submitted</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+3⏳</div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+
+          <!-- Others with 0 -->
+          <div class="april-rep" style="opacity:0.5;">
+            <div class="aname">Abdelhamid</div>
+            <div class="abar-outer">
+              <div class="abar-bg"><div class="abar-fill" style="width:0;" data-w="0"></div></div>
+              <div class="abar-labels"><span style="color:var(--sub);">0 live · 0 pipeline</span></div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe"></div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+          <div class="april-rep" style="opacity:0.5;">
+            <div class="aname">Elmehdi</div>
+            <div class="abar-outer">
+              <div class="abar-bg"><div class="abar-fill" style="width:0;" data-w="0"></div></div>
+              <div class="abar-labels"><span style="color:var(--sub);">0 live · 0 pipeline</span></div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe"></div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+          <div class="april-rep" style="opacity:0.5;">
+            <div class="aname">Yassir</div>
+            <div class="abar-outer">
+              <div class="abar-bg"><div class="abar-fill" style="width:0;" data-w="0"></div></div>
+              <div class="abar-labels"><span style="color:var(--sub);">0 live · 0 pipeline</span></div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe"></div>
+            <div class="status-pill behind">BEHIND</div>
+          </div>
+        </div>
+
+        <!-- TELESALES -->
+        <div class="april-team-col">
+          <div class="april-col-label tele">⬤ Telesales — Target: 33 deals/rep</div>
+
+          <!-- Yasmine: 4 pending QC/Onboarding — closest to activation -->
+          <div class="april-rep">
+            <div class="aname">⚡ Yasmine</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#7C3AED,#A78BFA);" data-w="12"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:#A78BFA; font-weight:700;">4 pending activation</span>
+                <span style="color:#60A5FA;">33 QC pipeline</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+4🔍</div>
+            <div class="status-pill on">CLOSE</div>
+          </div>
+
+          <!-- Hind: 11 quote approvals — deep in funnel -->
+          <div class="april-rep">
+            <div class="aname">⚡ Hind</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#7C3AED,#A78BFA);" data-w="33"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:#A78BFA; font-weight:700;">11 quote approvals</span>
+                <span style="color:#60A5FA;">11 awaiting QC</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+11🔍</div>
+            <div class="status-pill on">CLOSE</div>
+          </div>
+
+          <!-- Maryame: 38 impacted, 12 quote sent, 5 quote approval — dominant pipeline -->
+          <div class="april-rep">
+            <div class="aname">Maryame</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#7C3AED,#A78BFA);" data-w="36"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:#A78BFA; font-weight:700;">38 impacted · 5 Q.Approval</span>
+                <span style="color:#60A5FA;">12 quote sent</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+17⏳</div>
+            <div class="status-pill behind">BUILDING</div>
+          </div>
+
+          <!-- Salma: 9 impacted, 8 quote sent, 4 approval -->
+          <div class="april-rep">
+            <div class="aname">Salma</div>
+            <div class="abar-outer">
+              <div class="abar-bg">
+                <div class="abar-fill" style="width:0; background:linear-gradient(90deg,#7C3AED,#A78BFA);" data-w="27"></div>
+              </div>
+              <div class="abar-pace" style="left:13.6%;"></div>
+              <div class="abar-labels">
+                <span style="color:#A78BFA; font-weight:700;">9 impacted · 4 Q.Approval</span>
+                <span style="color:#60A5FA;">8 quote sent · 6 feedback</span>
+              </div>
+            </div>
+            <div class="adeals zero">0</div>
+            <div class="apipe">+12⏳</div>
+            <div class="status-pill behind">BUILDING</div>
+          </div>
+
+          <!-- April Telesales Summary box -->
+          <div style="margin-top:16px; padding:14px; background:rgba(124,77,255,0.08); border:1px solid rgba(124,77,255,0.2); border-radius:10px;">
+            <div style="font-size:10px; font-weight:700; color:#A78BFA; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Telesales Funnel — April MTD</div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center;">
+              <div><div style="font-size:18px;font-weight:900;color:#A78BFA;">38</div><div style="font-size:9px;color:var(--sub);">Verbal</div></div>
+              <div><div style="font-size:18px;font-weight:900;color:#60A5FA;">31</div><div style="font-size:9px;color:var(--sub);">Quote Sent</div></div>
+              <div><div style="font-size:18px;font-weight:900;color:var(--gold);">16</div><div style="font-size:9px;color:var(--sub);">Q.Approved</div></div>
+              <div><div style="font-size:18px;font-weight:900;color:var(--green);">4</div><div style="font-size:9px;color:var(--sub);">Pending Live</div></div>
+            </div>
+          </div>
+
+          <!-- Field Sales Summary box -->
+          <div style="margin-top:12px; padding:14px; background:rgba(30,144,255,0.07); border:1px solid rgba(30,144,255,0.2); border-radius:10px;">
+            <div style="font-size:10px; font-weight:700; color:#60A5FA; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Field Sales Funnel — April MTD</div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center;">
+              <div><div style="font-size:18px;font-weight:900;color:#60A5FA;">24</div><div style="font-size:9px;color:var(--sub);">Verbal</div></div>
+              <div><div style="font-size:18px;font-weight:900;color:var(--fire);">61</div><div style="font-size:9px;color:var(--sub);">Impacted</div></div>
+              <div><div style="font-size:18px;font-weight:900;color:var(--gold);">11</div><div style="font-size:9px;color:var(--sub);">Submitted</div></div>
+              <div><div style="font-size:18px;font-weight:900;color:var(--green);">6</div><div style="font-size:9px;color:var(--sub);">Live</div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SECTION 2: MARCH HALL OF FAME     -->
+  <!-- ══════════════════════════════════ -->
+  <div class="section-wrapper">
+    <div class="section-title">
+      <span class="icon">🏆</span>
+      <h2>March Hall of Fame</h2>
+      <span class="month-tag">MARCH 2026</span>
+    </div>
+
+    <!-- PARTNER ACTIVATIONS -->
+    <div class="metric-divider"><span>Partner Activations</span></div>
+    <div class="team-section fade-up">
+
+      <!-- Field Sales PA -->
+      <div class="team-block">
+        <div class="team-label field">Field Sales</div>
+        <div class="podium">
+
+          <!-- 2nd Place -->
+          <div class="podium-slot rank-2">
+            <div class="podium-avatar">MF</div>
+            <div class="podium-name">Mahdi</div>
+            <div class="podium-score">12</div>
+            <div class="podium-label">partners</div>
+            <div class="podium-base">2</div>
+          </div>
+
+          <!-- 1st Place -->
+          <div class="podium-slot rank-1">
+            <div class="podium-avatar" style="position:relative;">
+              <div class="crown">👑</div>
+              YJ
+            </div>
+            <div class="podium-name">Yassir</div>
+            <div class="podium-score">13</div>
+            <div class="podium-label">partners</div>
+            <div class="podium-base">1</div>
+          </div>
+
+          <!-- 3rd Place -->
+          <div class="podium-slot rank-3">
+            <div class="podium-avatar">SA</div>
+            <div class="podium-name">Soumaya</div>
+            <div class="podium-score">12</div>
+            <div class="podium-label">partners</div>
+            <div class="podium-base">3</div>
+          </div>
+
+        </div>
+        <div style="padding: 8px 4px; border-top: 1px solid var(--border); margin-top: 4px;">
+          <div class="healthy-row">
+            <div class="hname" style="color:var(--sub); font-size:11px;">Also strong:</div>
+            <div style="font-size:11px; color:var(--sub);">Abdelhamid (12) &middot; Elmehdi (11) &middot; Ahmed (11)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telesales PA -->
+      <div class="team-block">
+        <div class="team-label tele">Telesales</div>
+        <div class="podium">
+
+          <!-- 2nd -->
+          <div class="podium-slot rank-2">
+            <div class="podium-avatar">SC</div>
+            <div class="podium-name">Salma</div>
+            <div class="podium-score">11</div>
+            <div class="podium-label">partners</div>
+            <div class="podium-base">2</div>
+          </div>
+
+          <!-- 1st -->
+          <div class="podium-slot rank-1">
+            <div class="podium-avatar" style="position:relative;">
+              <div class="crown">👑</div>
+              YE
+            </div>
+            <div class="podium-name">Yasmine</div>
+            <div class="podium-score">15</div>
+            <div class="podium-label">partners</div>
+            <div class="podium-base">1</div>
+          </div>
+
+          <!-- 3rd -->
+          <div class="podium-slot rank-3">
+            <div class="podium-avatar">ME</div>
+            <div class="podium-name">Maryame</div>
+            <div class="podium-score">11</div>
+            <div class="podium-label">partners</div>
+            <div class="podium-base">3</div>
+          </div>
+
+        </div>
+        <div style="padding: 8px 4px; border-top: 1px solid var(--border); margin-top: 4px;">
+          <div class="healthy-row">
+            <div class="hname" style="color:var(--sub); font-size:11px;">Also:</div>
+            <div style="font-size:11px; color:var(--sub);">Hind (6)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- HEALTHY PARTNERS -->
+    <div class="metric-divider"><span>Healthy Partners — Partners with ≥8 Orders</span></div>
+    <div class="team-section fade-up">
+
+      <!-- Field Sales Healthy -->
+      <div class="team-block">
+        <div class="team-label field">Field Sales</div>
+        <div class="healthy-list">
+
+          <div class="healthy-row rank-1-row">
+            <div class="hname">👑 Mahdi</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="100"></div></div>
+            <div class="hval">11</div>
+          </div>
+          <div class="healthy-row rank-2-row">
+            <div class="hname">🥈 Yassir</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="90.9" style="background: linear-gradient(90deg, #6B7280, #D1D5DB);"></div></div>
+            <div class="hval" style="color:var(--silver);">10</div>
+          </div>
+          <div class="healthy-row rank-3-row">
+            <div class="hname">🥉 Badr</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="72.7" style="background: linear-gradient(90deg, #92400E, #D97706);"></div></div>
+            <div class="hval" style="color:var(--bronze);">8</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Soumaya</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="72.7"></div></div>
+            <div class="hval">8</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Maryam</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="54.5"></div></div>
+            <div class="hval">6</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Ahmed</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="54.5"></div></div>
+            <div class="hval">6</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Elmehdi</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="45.5"></div></div>
+            <div class="hval">5</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Ayoub</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="36.4"></div></div>
+            <div class="hval">4</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Abdelhamid</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="36.4"></div></div>
+            <div class="hval">4</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Omar</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="27.3"></div></div>
+            <div class="hval">3</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Anas</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="18.2"></div></div>
+            <div class="hval">2</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Amina</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="18.2"></div></div>
+            <div class="hval">2</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Telmani</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="0" style="background:var(--sub);"></div></div>
+            <div class="hval" style="color:var(--sub);">0</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Telesales Healthy -->
+      <div class="team-block">
+        <div class="team-label tele">Telesales</div>
+        <div class="healthy-list">
+
+          <div class="healthy-row rank-1-row">
+            <div class="hname">👑 Yasmine</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="100"></div></div>
+            <div class="hval">8</div>
+          </div>
+          <div class="healthy-row rank-2-row">
+            <div class="hname">🥈 Salma</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="100" style="background: linear-gradient(90deg, #6B7280, #D1D5DB);"></div></div>
+            <div class="hval" style="color:var(--silver);">8</div>
+          </div>
+          <div class="healthy-row rank-3-row">
+            <div class="hname">🥉 Hind</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="62.5" style="background: linear-gradient(90deg, #92400E, #D97706);"></div></div>
+            <div class="hval" style="color:var(--bronze);">5</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Maryame</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="62.5"></div></div>
+            <div class="hval">5</div>
+          </div>
+
+        </div>
+
+        <!-- Active partner rates -->
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--sub); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;">March Active Rate (Partners Ordering)</div>
+          <div class="healthy-row">
+            <div class="hname">Yasmine</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="86.7" style="background: linear-gradient(90deg, #7C3AED, #A78BFA);"></div></div>
+            <div class="hval" style="color:#A78BFA;">87%</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Salma</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="90.9" style="background: linear-gradient(90deg, #7C3AED, #A78BFA);"></div></div>
+            <div class="hval" style="color:#A78BFA;">91%</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Maryame</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="81.8" style="background: linear-gradient(90deg, #7C3AED, #A78BFA);"></div></div>
+            <div class="hval" style="color:#A78BFA;">82%</div>
+          </div>
+          <div class="healthy-row">
+            <div class="hname">Hind</div>
+            <div class="hbar-wrap"><div class="hbar" data-pct="83.3" style="background: linear-gradient(90deg, #7C3AED, #A78BFA);"></div></div>
+            <div class="hval" style="color:#A78BFA;">83%</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SECTION 2: APRIL LIVE TRACKER     -->
+  <!-- ══════════════════════════════════ -->
+  <div class="section-wrapper">
+    <div class="section-title">
+      <span class="icon">📈</span>
+      <h2>April Live Tracker</h2>
+      <span class="live-tag">MTD — APRIL 2026</span>
+    </div>
+
+    <div class="highlight-box">
+      <span>⚡</span>
+      <span>Month just started — 3 working days in. Every activation counts. <strong>Target: 22 deals/rep (Field) · 33 deals/rep (Telesales)</strong></span>
+    </div>
+
+    <div class="tracker-grid">
+
+      <!-- Field Sales April -->
+      <div class="tracker-block fade-up">
+        <div class="team-label field" style="margin-bottom:16px;">Field Sales — Partner Activations</div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">1</div>
+          <div class="rep-avatar-sm top">MF</div>
+          <div class="rep-info">
+            <div class="name">Mahdi Fannan <span style="font-size:12px;">🔥</span></div>
+            <div class="meta">2 deals · 100% MTD target hit</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar gold" style="width:0" data-width="9.1"></div></div>
+            <div class="progress-labels"><span class="pct on-fire">100% MTD ✓</span><span>9% of month</span></div>
+          </div>
+          <div class="rep-deals positive">2</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">2</div>
+          <div class="rep-avatar-sm top">TM</div>
+          <div class="rep-info">
+            <div class="name">Telmani <span style="font-size:12px;">🔥</span></div>
+            <div class="meta">1 deal · 100% MTD target hit</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar gold" style="width:0" data-width="4.5"></div></div>
+            <div class="progress-labels"><span class="pct on-fire">100% MTD ✓</span><span>4.5% of month</span></div>
+          </div>
+          <div class="rep-deals positive">1</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">3</div>
+          <div class="rep-avatar-sm top">OK</div>
+          <div class="rep-info">
+            <div class="name">Omar</div>
+            <div class="meta">1 deal · 67% MTD</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar blue" style="width:0" data-width="9.1"></div></div>
+            <div class="progress-labels"><span class="pct">67% MTD</span><span>9% of month</span></div>
+          </div>
+          <div class="rep-deals positive">1</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">4</div>
+          <div class="rep-avatar-sm">AB</div>
+          <div class="rep-info">
+            <div class="name">Ayoub</div>
+            <div class="meta">1 deal · 33% MTD</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar orange" style="width:0" data-width="4.5"></div></div>
+            <div class="progress-labels"><span class="pct">33% MTD</span><span>4.5% of month</span></div>
+          </div>
+          <div class="rep-deals positive">1</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">5</div>
+          <div class="rep-avatar-sm">BB</div>
+          <div class="rep-info">
+            <div class="name">Badr</div>
+            <div class="meta">1 deal · 33% MTD</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar orange" style="width:0" data-width="4.5"></div></div>
+            <div class="progress-labels"><span class="pct">33% MTD</span><span>4.5% of month</span></div>
+          </div>
+          <div class="rep-deals positive">1</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">—</div>
+          <div class="rep-avatar-sm">AA</div>
+          <div class="rep-info">
+            <div class="name">Ahmed</div>
+            <div class="meta">5 submitted · activation pending</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar blue" style="width:0" data-width="0"></div></div>
+            <div class="progress-labels"><span class="pct" style="color:#60A5FA;">5 in pipeline ⏳</span><span>0% live</span></div>
+          </div>
+          <div class="rep-deals zero">0</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">—</div>
+          <div class="rep-avatar-sm">SA</div>
+          <div class="rep-info">
+            <div class="name">Soumaya</div>
+            <div class="meta">8 impacted · strong pipeline</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar blue" style="width:0" data-width="0"></div></div>
+            <div class="progress-labels"><span class="pct" style="color:#60A5FA;">Pipeline building ⏳</span><span>0% live</span></div>
+          </div>
+          <div class="rep-deals zero">0</div>
+        </div>
+
+      </div>
+
+      <!-- Telesales April -->
+      <div class="tracker-block fade-up">
+        <div class="team-label tele" style="margin-bottom:16px;">Telesales — Partner Activations</div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">—</div>
+          <div class="rep-avatar-sm" style="border-color:rgba(124,77,255,0.4); color:#A78BFA;">YE</div>
+          <div class="rep-info">
+            <div class="name">Yasmine</div>
+            <div class="meta">4 deals in QC / Onboarding</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar purple" style="width:0" data-width="12"></div></div>
+            <div class="progress-labels"><span class="pct" style="color:#A78BFA;">4 pending activation ⏳</span><span>33 target</span></div>
+          </div>
+          <div class="rep-deals zero">0</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">—</div>
+          <div class="rep-avatar-sm" style="border-color:rgba(124,77,255,0.4); color:#A78BFA;">ME</div>
+          <div class="rep-info">
+            <div class="name">Maryame</div>
+            <div class="meta">38 impacted · 12 quote sent</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar purple" style="width:0" data-width="36"></div></div>
+            <div class="progress-labels"><span class="pct" style="color:#A78BFA;">Deep pipeline 🚀</span><span>33 target</span></div>
+          </div>
+          <div class="rep-deals zero">0</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">—</div>
+          <div class="rep-avatar-sm" style="border-color:rgba(124,77,255,0.4); color:#A78BFA;">SC</div>
+          <div class="rep-info">
+            <div class="name">Salma</div>
+            <div class="meta">9 impacted · 8 quote sent · 6 feedback</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar purple" style="width:0" data-width="27"></div></div>
+            <div class="progress-labels"><span class="pct" style="color:#A78BFA;">Pipeline building ⏳</span><span>33 target</span></div>
+          </div>
+          <div class="rep-deals zero">0</div>
+        </div>
+
+        <div class="rep-row">
+          <div class="rep-rank-num">—</div>
+          <div class="rep-avatar-sm" style="border-color:rgba(124,77,255,0.4); color:#A78BFA;">HK</div>
+          <div class="rep-info">
+            <div class="name">Hind</div>
+            <div class="meta">11 quote approval · 11 quote sent</div>
+          </div>
+          <div class="rep-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar purple" style="width:0" data-width="33"></div></div>
+            <div class="progress-labels"><span class="pct" style="color:#A78BFA;">11 awaiting QC 🔍</span><span>33 target</span></div>
+          </div>
+          <div class="rep-deals zero">0</div>
+        </div>
+
+        <!-- April Telesales note -->
+        <div style="margin-top: 20px; padding: 14px; background: rgba(124,77,255,0.08); border: 1px solid rgba(124,77,255,0.2); border-radius: 10px;">
+          <div style="font-size: 11px; font-weight: 700; color: #A78BFA; margin-bottom: 6px; letter-spacing: 0.5px;">📊 April Telesales Pipeline Status</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:900; color:#A78BFA;">38</div>
+              <div style="font-size:9px; color:var(--sub); text-transform:uppercase;">Verbal Agreements</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:900; color:#A78BFA;">11</div>
+              <div style="font-size:9px; color:var(--sub); text-transform:uppercase;">Quote Approvals</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:900; color:var(--gold);">4</div>
+              <div style="font-size:9px; color:var(--sub); text-transform:uppercase;">Pending Activation</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:900; color:var(--green);">729</div>
+              <div style="font-size:9px; color:var(--sub); text-transform:uppercase;">Total Activities</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SECTION 3: PIPELINE WARRIORS      -->
+  <!-- ══════════════════════════════════ -->
+  <div class="section-wrapper">
+    <div class="section-title">
+      <span class="icon">⚡</span>
+      <h2>Pipeline Warriors</h2>
+      <span class="month-tag">CURRENT MOMENTUM</span>
+    </div>
+
+    <div class="highlight-box" style="background: linear-gradient(135deg, rgba(30,144,255,0.06), rgba(124,77,255,0.06)); border-color: rgba(30,144,255,0.2);">
+      <span>📌</span>
+      <span>Ranked by <strong>lead impact, conversion quality, and pipeline depth</strong> — who is turning leads into partners.</span>
+    </div>
+
+    <div class="pipeline-grid">
+
+      <!-- Field Sales Pipeline -->
+      <div class="pipeline-block">
+        <div class="team-label field" style="margin-bottom:18px;">Field Sales — Pipeline Performance</div>
+
+        <div class="warrior-card top-warrior">
+          <div class="warrior-rank">🥇</div>
+          <div class="warrior-info">
+            <div class="name">Ahmed Idrissi <span class="role-tag field">FIELD</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">121</div>
+                <div class="lbl">Impacted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">235</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">20</div>
+                <div class="lbl">Converted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">51%</div>
+                <div class="lbl">Impact Rate</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire">🔥</div>
+        </div>
+
+        <div class="warrior-card top-warrior">
+          <div class="warrior-rank">🥈</div>
+          <div class="warrior-info">
+            <div class="name">Soumaya Askour <span class="role-tag field">FIELD</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">8</div>
+                <div class="lbl">Impacted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">113</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">50%</div>
+                <div class="lbl">Conv. Rate</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">4</div>
+                <div class="lbl">Verbal</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire">⚡</div>
+        </div>
+
+        <div class="warrior-card top-warrior">
+          <div class="warrior-rank">🥉</div>
+          <div class="warrior-info">
+            <div class="name">Mahdi Fannan <span class="role-tag field">FIELD</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">6</div>
+                <div class="lbl">Verbal</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">152</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">2</div>
+                <div class="lbl">Live April</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">33%</div>
+                <div class="lbl">Conv. Rate</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire">🔥</div>
+        </div>
+
+        <div class="warrior-card">
+          <div class="warrior-rank" style="font-size:14px; color:var(--sub);">4</div>
+          <div class="warrior-info">
+            <div class="name">Omar Elkortobi <span class="role-tag field">FIELD</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val">7</div>
+                <div class="lbl">Impacted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">100</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">7</div>
+                <div class="lbl">Verbal</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">14%</div>
+                <div class="lbl">Conv. Rate</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire" style="opacity:0.5;">⚡</div>
+        </div>
+
+        <div class="warrior-card">
+          <div class="warrior-rank" style="font-size:14px; color:var(--sub);">5</div>
+          <div class="warrior-info">
+            <div class="name">Ayoub Bauhou <span class="role-tag field">FIELD</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">58</div>
+                <div class="lbl">Impacted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">126</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">42</div>
+                <div class="lbl">Verbal</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val" style="color:#FB923C;">6.9%</div>
+                <div class="lbl">Conv. Rate</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire" style="opacity:0.5;">⚡</div>
+        </div>
+
+        <div style="margin-top:12px; padding:10px 12px; background:rgba(30,144,255,0.05); border:1px solid rgba(30,144,255,0.1); border-radius:8px;">
+          <div style="font-size:10px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:1px;">Field Sales Team Pipeline Summary</div>
+          <div style="display:flex; gap:20px; margin-top:8px;">
+            <div><span style="font-size:16px;font-weight:900;color:var(--blue);">682</span><div style="font-size:9px;color:var(--sub);">Total Activities</div></div>
+            <div><span style="font-size:16px;font-weight:900;color:var(--fire);">61</span><div style="font-size:9px;color:var(--sub);">Impacted Leads</div></div>
+            <div><span style="font-size:16px;font-weight:900;color:var(--green);">6</span><div style="font-size:9px;color:var(--sub);">Live Partners Apr</div></div>
+            <div><span style="font-size:16px;font-weight:900;color:var(--gold);">35</span><div style="font-size:9px;color:var(--sub);">MTD Target</div></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Telesales Pipeline -->
+      <div class="pipeline-block">
+        <div class="team-label tele" style="margin-bottom:18px;">Telesales — Pipeline Performance</div>
+
+        <div class="warrior-card top-warrior">
+          <div class="warrior-rank">🥇</div>
+          <div class="warrior-info">
+            <div class="name">Maryame Elbekkari <span class="role-tag tele">TELE</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">38</div>
+                <div class="lbl">Impacted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">373</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">38</div>
+                <div class="lbl">Verbal</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">193</div>
+                <div class="lbl">Activities</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire">🔥</div>
+        </div>
+
+        <div class="warrior-card top-warrior">
+          <div class="warrior-rank">🥈</div>
+          <div class="warrior-info">
+            <div class="name">Salma Chafi <span class="role-tag tele">TELE</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">9</div>
+                <div class="lbl">Impacted</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">364</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">5</div>
+                <div class="lbl">Verbal</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">225</div>
+                <div class="lbl">Activities</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire">⚡</div>
+        </div>
+
+        <div class="warrior-card top-warrior">
+          <div class="warrior-rank">🥉</div>
+          <div class="warrior-info">
+            <div class="name">Yasmine Elmezragui <span class="role-tag tele">TELE</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val highlight">33</div>
+                <div class="lbl">In QC</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">324</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">4</div>
+                <div class="lbl">Pending</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">141</div>
+                <div class="lbl">Activities</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire">⚡</div>
+        </div>
+
+        <div class="warrior-card">
+          <div class="warrior-rank" style="font-size:14px; color:var(--sub);">4</div>
+          <div class="warrior-info">
+            <div class="name">Hind Kabbaj <span class="role-tag tele">TELE</span></div>
+            <div class="warrior-stats">
+              <div class="warrior-stat">
+                <div class="val">11</div>
+                <div class="lbl">Quote Appr.</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val blue">286</div>
+                <div class="lbl">Pipeline</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val">11</div>
+                <div class="lbl">Quote Sent</div>
+              </div>
+              <div class="warrior-stat">
+                <div class="val green">170</div>
+                <div class="lbl">Activities</div>
+              </div>
+            </div>
+          </div>
+          <div class="warrior-fire" style="opacity:0.5;">⚡</div>
+        </div>
+
+        <div style="margin-top:12px; padding:10px 12px; background:rgba(124,77,255,0.05); border:1px solid rgba(124,77,255,0.1); border-radius:8px;">
+          <div style="font-size:10px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:1px;">Telesales Team Pipeline Summary</div>
+          <div style="display:flex; gap:20px; margin-top:8px;">
+            <div><span style="font-size:16px;font-weight:900;color:#A78BFA;">729</span><div style="font-size:9px;color:var(--sub);">Total Activities</div></div>
+            <div><span style="font-size:16px;font-weight:900;color:var(--fire);">50</span><div style="font-size:9px;color:var(--sub);">Impacted Grids</div></div>
+            <div><span style="font-size:16px;font-weight:900;color:var(--green);">43</span><div style="font-size:9px;color:var(--sub);">Verbal Stage</div></div>
+            <div><span style="font-size:16px;font-weight:900;color:var(--gold);">18</span><div style="font-size:9px;color:var(--sub);">MTD Target</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SECTION 4: FULL TEAM RANKINGS     -->
+  <!-- ══════════════════════════════════ -->
+  <div class="section-wrapper">
+    <div class="section-title">
+      <span class="icon">📋</span>
+      <h2>Full Team — March Rankings</h2>
+      <span class="month-tag">ALL REPS</span>
+    </div>
+
+    <div class="team-section">
+      <!-- Field Sales Full -->
+      <div class="team-block">
+        <div class="team-label field" style="margin-bottom:16px;">Field Sales — All Reps (March)</div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="color:var(--sub); text-align:left; border-bottom:1px solid var(--border);">
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:0.5px;">Rep</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Activated</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Active</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Healthy</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Active %</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Apr MTD</th>
+            </tr>
+          </thead>
+          <tbody id="field-table">
+            <!-- JS injected -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Telesales Full -->
+      <div class="team-block">
+        <div class="team-label tele" style="margin-bottom:16px;">Telesales — All Reps (March)</div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="color:var(--sub); text-align:left; border-bottom:1px solid var(--border);">
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:0.5px;">Rep</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Activated</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Active</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Healthy</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Active %</th>
+              <th style="padding:6px 4px; font-weight:600; font-size:10px; text-align:center;">Apr MTD</th>
+            </tr>
+          </thead>
+          <tbody id="tele-table">
+            <!-- JS injected -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SALESFORCE INTEGRATION           -->
+<!-- ══════════════════════════════════ -->
+<div class="container">
+  <div class="sf-section">
+    <div class="sf-header">
+      <div class="sf-logo">☁️</div>
+      <div>
+        <h3>Salesforce Integration</h3>
+        <p>Connect to pull live pipeline data directly from your Salesforce org</p>
+      </div>
+      <div class="sf-status disconnected" id="sf-status">Not Connected</div>
+    </div>
+
+    <div class="sf-body">
+
+      <!-- SETUP GUIDE -->
+      <div class="sf-setup">
+        <div style="font-size:12px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">Setup Guide (One-time, 5 min)</div>
+        <ol class="sf-steps">
+          <li>
+            <div class="step-text">In Salesforce, go to <strong>Setup → App Manager → New Connected App</strong></div>
+          </li>
+          <li>
+            <div class="step-text">Fill in App Name: <code>Sales Dashboard</code>. Enable <strong>OAuth Settings</strong>, set callback URL to <code>http://localhost</code></div>
+          </li>
+          <li>
+            <div class="step-text">Add scopes: <strong>Full access</strong> or <strong>api, refresh_token</strong>. Save and wait 2–10 min for it to activate.</div>
+          </li>
+          <li>
+            <div class="step-text">Copy the <strong>Consumer Key</strong> (Client ID) and <strong>Consumer Secret</strong> from the app. Paste them in the form →</div>
+          </li>
+          <li>
+            <div class="step-text">Get your <strong>Security Token</strong> from <strong>My Settings → Personal → Reset Security Token</strong>. Append it to your password in the form.</div>
+          </li>
+        </ol>
+        <div style="padding:10px 14px; background:rgba(255,215,0,0.06); border:1px solid rgba(255,215,0,0.15); border-radius:8px; margin-top:8px;">
+          <div style="font-size:11px; color:var(--gold); font-weight:700; margin-bottom:4px;">💡 What gets pulled</div>
+          <div style="font-size:11px; color:var(--sub); line-height:1.7;">Opportunities (stage, amount, owner) · Activities (tasks, calls) · Leads (status, source) · Accounts — all filtered to your MA team.</div>
+        </div>
+      </div>
+
+      <!-- CONNECT FORM -->
+      <div class="sf-connect-form">
+        <div style="font-size:12px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">Connect Your Org</div>
+
+        <div class="sf-field">
+          <label>Salesforce Org URL</label>
+          <input type="text" id="sf-url" value="https://deliveryhero.my.salesforce.com" placeholder="https://yourcompany.my.salesforce.com">
+        </div>
+        <div class="sf-field">
+          <label>Client ID (Consumer Key)</label>
+          <input type="text" id="sf-client-id" placeholder="Paste Consumer Key from Connected App">
+        </div>
+        <div class="sf-field">
+          <label>Client Secret</label>
+          <input type="password" id="sf-client-secret" placeholder="Paste Consumer Secret">
+        </div>
+        <div class="sf-field">
+          <label>Username</label>
+          <input type="text" id="sf-username" placeholder="your.email@deliveryhero.com">
+        </div>
+        <div class="sf-field">
+          <label>Password + Security Token</label>
+          <input type="password" id="sf-password" placeholder="passwordSECURITYTOKEN (no space)">
+        </div>
+        <button class="sf-btn" id="sf-connect-btn" onclick="connectSalesforce()">Connect to Salesforce</button>
+        <div class="sf-error" id="sf-error"></div>
+        <div class="sf-note">
+          Credentials are used only in your browser — never sent anywhere except Salesforce.<br>
+          Need help? <a href="https://help.salesforce.com/s/articleView?id=sf.connected_app_create.htm" target="_blank">Salesforce Connected App guide ↗</a>
+        </div>
+
+        <!-- DATA PANEL — shown after connect -->
+        <div class="sf-data-panel" id="sf-data-panel">
+          <div class="sf-data-title">📊 Live Salesforce Data — MA Team</div>
+          <div id="sf-data-rows"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  MA Sales Dashboard &middot; Data source: Sales Manager Toolkit &middot; SF Org: deliveryhero.my.salesforce.com &middot; April 5, 2026
+</div>
+
+<script>
+  // Set current date
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+  // Animate all progress bars
+  setTimeout(() => {
+    document.querySelectorAll('.progress-bar[data-width]').forEach(bar => {
+      bar.style.width = bar.getAttribute('data-width') + '%';
+    });
+    document.querySelectorAll('.hbar[data-pct]').forEach(bar => {
+      bar.style.width = bar.getAttribute('data-pct') + '%';
+    });
+    document.querySelectorAll('.abar-fill[data-w]').forEach(bar => {
+      bar.style.width = bar.getAttribute('data-w') + '%';
+    });
+  }, 300);
+
+  // ── SALESFORCE INTEGRATION ──
+  async function connectSalesforce() {
+    const btn = document.getElementById('sf-connect-btn');
+    const errEl = document.getElementById('sf-error');
+    const statusEl = document.getElementById('sf-status');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+
+    const instanceUrl = document.getElementById('sf-url').value.trim().replace(/\/$/, '');
+    const clientId    = document.getElementById('sf-client-id').value.trim();
+    const clientSecret= document.getElementById('sf-client-secret').value.trim();
+    const username    = document.getElementById('sf-username').value.trim();
+    const password    = document.getElementById('sf-password').value.trim();
+
+    if (!clientId || !clientSecret || !username || !password) {
+      showSFError('Please fill in all fields.');
+      btn.disabled = false; btn.textContent = 'Connect to Salesforce'; return;
+    }
+
+    try {
+      // OAuth 2.0 Username-Password flow
+      const tokenUrl = `${instanceUrl}/services/oauth2/token`;
+      const body = new URLSearchParams({
+        grant_type:    'password',
+        client_id:     clientId,
+        client_secret: clientSecret,
+        username:      username,
+        password:      password
+      });
+
+      const resp = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+        body: body.toString()
+      });
+
+      const data = await resp.json();
+      if (!resp.ok || !data.access_token) {
+        throw new Error(data.error_description || data.error || 'Authentication failed. Check credentials.');
+      }
+
+      const token = data.access_token;
+      const sfInstance = data.instance_url || instanceUrl;
+
+      statusEl.textContent = '✓ Connected';
+      statusEl.className = 'sf-status connected';
+      btn.textContent = 'Refresh Data';
+      btn.disabled = false;
+
+      await fetchSFData(sfInstance, token);
+
+    } catch(e) {
+      showSFError(e.message.includes('Failed to fetch')
+        ? 'Could not reach Salesforce — make sure CORS is enabled on your Connected App or try from a hosted URL.'
+        : e.message);
+      btn.disabled = false;
+      btn.textContent = 'Retry Connection';
+    }
+  }
+
+  async function fetchSFData(instance, token) {
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    // SOQL: Open Opportunities for MA team (adapt fields to your org)
+    const oppQuery = encodeURIComponent(
+      `SELECT Owner.Name, StageName, COUNT(Id) cnt, SUM(Amount) total
+       FROM Opportunity
+       WHERE IsClosed = false AND Owner.Country__c = 'Morocco'
+       GROUP BY Owner.Name, StageName
+       ORDER BY Owner.Name`
+    );
+
+    try {
+      const resp = await fetch(`${instance}/services/data/v58.0/query?q=${oppQuery}`, { headers });
+      const result = await resp.json();
+
+      if (result.errorCode) throw new Error(result.message || result.errorCode);
+
+      const rows = result.records || [];
+      const panel = document.getElementById('sf-data-panel');
+      const rowsEl = document.getElementById('sf-data-rows');
+      rowsEl.innerHTML = '';
+
+      if (rows.length === 0) {
+        rowsEl.innerHTML = '<div style="color:var(--sub);font-size:12px;">No open opportunities found for Morocco team.</div>';
+      } else {
+        // Aggregate by owner
+        const byOwner = {};
+        rows.forEach(r => {
+          const n = r['Owner'] ? r['Owner']['Name'] : 'Unknown';
+          if (!byOwner[n]) byOwner[n] = { stages: {}, total: 0 };
+          byOwner[n].stages[r.StageName] = r.cnt;
+          byOwner[n].total += r.cnt;
+        });
+        Object.entries(byOwner).sort((a,b)=>b[1].total-a[1].total).forEach(([name, data]) => {
+          rowsEl.innerHTML += `
+            <div class="sf-data-row">
+              <span>${name}</span>
+              <span style="color:var(--green);font-weight:700;">${data.total} open opps</span>
+            </div>`;
+        });
+      }
+      panel.classList.add('visible');
+
+    } catch(e) {
+      // Try simplified query if custom field fails
+      showSFError('SF data fetched but query needs adjustment for your org schema: ' + e.message);
+    }
+  }
+
+  function showSFError(msg) {
+    const el = document.getElementById('sf-error');
+    el.textContent = '⚠ ' + msg;
+    el.style.display = 'block';
+  }
+
+  // Field Sales data
+  const fieldReps = [
+    { name: 'Yassir Jabour',     act: 13, active: 11, healthy: 10, activeRate: 84.6, aprMtd: 0 },
+    { name: 'Mahdi Fannan',      act: 12, active: 11, healthy: 11, activeRate: 91.7, aprMtd: 2 },
+    { name: 'Abdelhamid Atbir',  act: 12, active: 8,  healthy: 4,  activeRate: 66.7, aprMtd: 0 },
+    { name: 'Soumaya Askour',    act: 12, active: 10, healthy: 8,  activeRate: 83.3, aprMtd: 0 },
+    { name: 'Elmehdi Elmesbahi', act: 11, active: 10, healthy: 5,  activeRate: 90.9, aprMtd: 0 },
+    { name: 'Ahmed Idrissi',     act: 11, active: 7,  healthy: 6,  activeRate: 63.6, aprMtd: 0 },
+    { name: 'Badr Ben',          act: 10, active: 10, healthy: 8,  activeRate: 100,  aprMtd: 1 },
+    { name: 'Maryam Oumahmoud',  act: 7,  active: 7,  healthy: 6,  activeRate: 100,  aprMtd: 0 },
+    { name: 'Ayoub Bauhou',      act: 8,  active: 6,  healthy: 4,  activeRate: 75,   aprMtd: 1 },
+    { name: 'Omar Elkortobi',    act: 6,  active: 4,  healthy: 3,  activeRate: 66.7, aprMtd: 1 },
+    { name: 'Anas Makhloufi',    act: 6,  active: 5,  healthy: 2,  activeRate: 83.3, aprMtd: 0 },
+    { name: 'Amina Majid',       act: 4,  active: 4,  healthy: 2,  activeRate: 100,  aprMtd: 0 },
+    { name: 'Telmani Mohammed',  act: 3,  active: 2,  healthy: 0,  activeRate: 66.7, aprMtd: 1 },
+    { name: 'Otmane Bentammar',  act: 0,  active: 0,  healthy: 0,  activeRate: 0,    aprMtd: 0 },
+  ];
+
+  const teleReps = [
+    { name: 'Yasmine Elmezragui', act: 15, active: 13, healthy: 8,  activeRate: 86.7, aprMtd: 0 },
+    { name: 'Salma Chafi',        act: 11, active: 10, healthy: 8,  activeRate: 90.9, aprMtd: 0 },
+    { name: 'Maryame Elbekkari',  act: 11, active: 9,  healthy: 5,  activeRate: 81.8, aprMtd: 0 },
+    { name: 'Hind Kabbaj',        act: 6,  active: 5,  healthy: 5,  activeRate: 83.3, aprMtd: 0 },
+  ];
+
+  const maxAct = 15;
+
+  function renderTable(data, tbodyId) {
+    const tbody = document.getElementById(tbodyId);
+    data.forEach((rep, i) => {
+      const isTop3 = i < 3;
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+      const barW = Math.round((rep.act / maxAct) * 100);
+      const healthyColor = rep.healthy >= 8 ? '#34D399' : rep.healthy >= 5 ? '#60A5FA' : rep.healthy >= 2 ? '#FB923C' : '#4B5563';
+      const aprColor = rep.aprMtd > 0 ? '#34D399' : 'rgba(255,255,255,0.2)';
+
+      tbody.innerHTML += `
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.03); ${isTop3 ? 'background:rgba(255,255,255,0.01)' : ''}">
+          <td style="padding:8px 4px;">
+            <span style="font-size:12px;">${medal}</span>
+            <span style="font-size:12px; font-weight:${isTop3 ? '700' : '400'}; color:${isTop3 ? '#fff' : 'var(--text)'};">${rep.name.split(' ')[0]}</span>
+          </td>
+          <td style="padding:8px 4px; text-align:center;">
+            <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+              <div style="flex:1; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; min-width:40px;">
+                <div style="height:4px; border-radius:2px; width:${barW}%; background:linear-gradient(90deg, #2563EB, #60A5FA);"></div>
+              </div>
+              <span style="font-weight:700; color:${isTop3 ? 'var(--gold)' : 'var(--text)'};">${rep.act}</span>
+            </div>
+          </td>
+          <td style="padding:8px 4px; text-align:center; font-weight:600;">${rep.active}</td>
+          <td style="padding:8px 4px; text-align:center; font-weight:700; color:${healthyColor};">${rep.healthy}</td>
+          <td style="padding:8px 4px; text-align:center; font-size:11px; color:${rep.activeRate >= 80 ? 'var(--green)' : rep.activeRate >= 60 ? '#FB923C' : 'var(--sub)'};">${rep.activeRate}%</td>
+          <td style="padding:8px 4px; text-align:center; font-weight:700; color:${aprColor}; font-size:14px;">${rep.aprMtd > 0 ? rep.aprMtd : '—'}</td>
+        </tr>`;
+    });
+  }
+
+  renderTable(fieldReps, 'field-table');
+  renderTable(teleReps, 'tele-table');
+</script>
+</body>
+</html>
